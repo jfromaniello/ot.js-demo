@@ -14,7 +14,7 @@
     "url": "https://github.com/operational-transformation/ot.js-demo/issues"
   },
   "dependencies": {
-    "ot": "git+https://github.com/jfromaniello/ot.js.git",
+    "ot": "git+ssh://git@github.com:jfromaniello/ot.js.git#operations-store-interface",
     "express": "3.0.6",
     "socket.io": "0.9.13",
     "ejs": "~0.8.3",
