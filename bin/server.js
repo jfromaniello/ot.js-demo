@@ -39,7 +39,8 @@ var cmServers = [];
 
 function getOrCreate (docId, callback) {
   if(cmServers[docId]) return callback(cmServers[docId]);
-  var store = new MongoDBStore({url: 'mongodb://localhost:27017/otdemo'}, docId, function () {
+  
+  var store = new MongoDBStore({url: process.env.MONGOLAB_URI  || 'mongodb://localhost:27017/otdemo'}, docId, function () {
     cmServers[docId] = new ot.CodeMirrorServerRoom(docId, store);
 
     cmServers[docId].onEmptyRoom = function () {
