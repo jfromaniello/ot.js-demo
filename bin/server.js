@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 var ot = require('ot');
+var MongoDBStore = require('../lib/MongoDBStore');
+
 var express = require('express');
 var socketIO = require('socket.io');
 var path = require('path');
@@ -35,19 +37,19 @@ var str = "# This is a Markdown heading\n\n"
 
 var cmServers = [];
 
-function getOrCreate (docId) {
-  if(cmServers[docId]) return cmServers[docId];
+function getOrCreate (docId, callback) {
+  if(cmServers[docId]) return callback(cmServers[docId]);
+  var store = new MongoDBStore({url: 'mongodb://localhost:27017/otdemo'}, docId, function () {
+    cmServers[docId] = new ot.CodeMirrorServerRoom(docId, store);
 
-  cmServers[docId] = new ot.CodeMirrorServerRoom(docId, str, [], function (socket, cb) {
-    cb(!!socket.mayEdit);
+    cmServers[docId].onEmptyRoom = function () {
+      console.log('last socket disconnected from document ' , docId);
+      delete cmServers[docId];
+    };
+
+    callback(cmServers[docId]);
+
   });
-
-  cmServers[docId].onEmptyRoom = function () {
-    console.log('last socket disconnected from document ' , docId);
-    delete cmServers[docId];
-  };
-  
-  return cmServers[docId];
 }
 
 io.sockets.on('connection', function (socket) {
@@ -59,10 +61,11 @@ io.sockets.on('connection', function (socket) {
 
     socket.mayEdit = true;
     
-    var cmServer = getOrCreate(obj.docId);
-    cmServer.hook(socket, obj.name);
-
-    socket.emit('logged_in', {});
+    getOrCreate(obj.docId, function (server) {
+      server.hook(socket, obj.name, function (){
+        socket.emit('logged_in', {});
+      });
+    });
   });
 });
 

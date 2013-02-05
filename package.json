@@ -17,7 +17,8 @@
     "ot": "git+https://github.com/jfromaniello/ot.js.git",
     "express": "3.0.6",
     "socket.io": "0.9.13",
-    "ejs": "~0.8.3"
+    "ejs": "~0.8.3",
+    "mongodb": "~1.2.11"
   },
   "engines": {
     "node": "0.8.x",
