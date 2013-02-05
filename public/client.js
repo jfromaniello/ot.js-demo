@@ -104,7 +104,10 @@
     preventDefault(e);
     var username = document.getElementById('username').value;
     socket
-      .emit('login', { name: username })
+      .emit('login', { 
+        name:  username, 
+        docId: window.docId
+      })
       .on('logged_in', function () {
         var li = document.createElement('li');
         li.appendChild(document.createTextNode(username + " (that's you!)"));

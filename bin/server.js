@@ -10,6 +10,8 @@ var app = express();
 var appServer = http.createServer(app);
 
 app.configure(function () {
+  app.set('view engine', 'ejs');
+  app.set('views', path.join(__dirname, '../views'));
   app.use(express.logger());
   app.use(express.static(path.join(__dirname, '../public')));
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
@@ -29,18 +31,50 @@ var str = "# This is a Markdown heading\n\n"
         + "3. trois\n\n"
         + "Lorem *ipsum* dolor **sit** amet.\n\n"
         + "    $ touch test.txt";
-var cmServer = new ot.CodeMirrorServer(str, io.sockets, [], function (socket, cb) {
-  cb(!!socket.mayEdit);
-});
+
+
+var cmServers = [];
+
+function getOrCreate (docId) {
+  if(cmServers[docId]) return cmServers[docId];
+
+  cmServers[docId] = new ot.CodeMirrorServerRoom(docId, str, [], function (socket, cb) {
+    cb(!!socket.mayEdit);
+  });
+
+  cmServers[docId].onEmptyRoom = function () {
+    console.log('last socket disconnected from document ' , docId);
+    delete cmServers[docId];
+  };
+  
+  return cmServers[docId];
+}
+
 io.sockets.on('connection', function (socket) {
   socket.on('login', function (obj) {
     if (typeof obj.name !== 'string') {
       console.error('obj.name is not a string');
       return;
     }
+
     socket.mayEdit = true;
-    cmServer.setName(socket, obj.name);
+    
+    var cmServer = getOrCreate(obj.docId);
+    cmServer.hook(socket, obj.name);
+
     socket.emit('logged_in', {});
+  });
+});
+
+app.get('/', function (req, res) {
+  res.render('index', {
+    docId: 'index'
+  });
+});
+
+app.get('/doc/:docId', function (req, res) {
+  res.render('index', {
+    docId: req.params.docId
   });
 });
 

@@ -14,9 +14,10 @@
     "url": "https://github.com/operational-transformation/ot.js-demo/issues"
   },
   "dependencies": {
-    "ot": "0.0.11",
+    "ot": "git+https://github.com/jfromaniello/ot.js.git",
     "express": "3.0.6",
-    "socket.io": "0.9.13"
+    "socket.io": "0.9.13",
+    "ejs": "~0.8.3"
   },
   "engines": {
     "node": "0.8.x",
