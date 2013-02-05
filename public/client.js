@@ -103,24 +103,31 @@
   loginForm.onsubmit = function (e) {
     preventDefault(e);
     var username = document.getElementById('username').value;
-    socket
-      .emit('login', { 
+    
+    function login(){
+      socket.emit('login', { 
         name:  username, 
         docId: window.docId
-      })
-      .on('logged_in', function () {
-        var li = document.createElement('li');
-        li.appendChild(document.createTextNode(username + " (that's you!)"));
-        cmClient.clientListEl.appendChild(li);
-
-        enable(boldBtn);
-        enable(italicBtn);
-        enable(codeBtn);
-
-        cm.setOption('readOnly', false);
-        removeElement(overlay);
-        removeElement(loginForm);
       });
+    }
+
+    login();
+
+    socket
+      .once('logged_in', function () {
+          var li = document.createElement('li');
+          li.appendChild(document.createTextNode(username + " (that's you!)"));
+          cmClient.clientListEl.appendChild(li);
+
+          enable(boldBtn);
+          enable(italicBtn);
+          enable(codeBtn);
+
+          cm.setOption('readOnly', false);
+          removeElement(overlay);
+          removeElement(loginForm);
+        })
+      .on('reconnect', login);
   };
 
   var overlay = document.createElement('div');
@@ -132,7 +139,7 @@
   cmWrapper.appendChild(overlay);
 
   var cmClient;
-  socket.on('doc', function (obj) {
+  socket.once('doc', function (obj) {
     cm.setValue(obj.str);
     cmClient = window.cmClient = new EditorClient(
       obj.revision,
